@@ -41,7 +41,7 @@ void main (void)
   LCDClear();
   LCDDisplay("Fermeture");
 
-  EX0 = 0;
+  EX0 = 1;
   IT0 = 1;
   EA = 1;
 
@@ -208,9 +208,26 @@ void timer(void)
 
 void spit_ext0(void) interrupt 0 setting 1
 {
+  u16 temps_restant;
+  
   protocole_ouverture();
-  timer();
+
+  for (temps_restant = 10; temps_restant !=0; temps_restant--)
+  {
+    printf("Temps restant: %hu\n", temps_restant);
+
+    u16 Nb1, cpt100ms;
+    for(cpt100ms = 0; cpt100ms < 10; cpt100ms ++)
+    {
+      for(Nb1 = 0; Nb1 < 48000; Nb1 ++)
+      {
+      }
+    }
+    
+  }
   protocole_fermeture();
 
   nbPlaces++;
+
+  IT0 = 0;
 }

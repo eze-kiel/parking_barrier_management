@@ -1,25 +1,27 @@
-#include <reg552.h>
+//#include <reg552.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-//#include <unistd.h>
+#include <unistd.h> //pour sleep(x), utiliser commandes UNIX
 #include "../Biblio/types.h"
-#include "../Biblio/mesfonctions.h"
-#include "../Biblio/io_xeva.h"
+//#include "../Biblio/mesfonctions.h"
+//#include "../Biblio/io_xeva.h"
+
 
 
 #define SECRET "9876"
-#define TAILLE_PARKING 2
+#define TAILLE_PARKING 2      
 
 #define TRUE 1
 #define FALSE 0
 
+// VARIABLES
 u8 code_index;
 u8 digicode[sizeof(SECRET)-1];
-u8 nbPlaces = TAILLE_PARKING;
+u16 nbPlaces = TAILLE_PARKING;
 u8 demande_sortie;
 
-
+// FONCTIONS
 u8 secret_size(void);
 u8 digit_is_valid(char c);
 u8 read_digit(void);
@@ -27,82 +29,57 @@ u8 check_code(void);
 void debug_digits(void);
 u8 check_place(u16 nbPlaces);
 void tempo100ms(u16 Nb100ms);
-void sortie(void);
-u8 Appui_P32(void);
-//u16 protocole_entree (u16 nbPlaces);
-
-u8 Places_restantes[1];
+void protocole_ouverture(void);
+void protocole_fermeture(void);
+void timer(void);
 
 void main (void) 
 {
   code_index = 0;
-  
+
+  LCDInit();
+  LCDClear();
+  LCDDisplay("Fermeture");
+
   EX0 = 0;
   IT0 = 1;
   EA = 1;
 
-  LCDInit();
-
-  
-  //REMOVE BEFORE USE
-  //printf("sizeof: %ld\n", sizeof(SECRET) - 1);
 
   printf("Place(s) restante(s) : %hu\n", nbPlaces);
-
-  //REMOVE BEFORE USE
-  //printf("%s\n", SECRET); 
 
   while (TRUE) 
   {
   
     read_digit();
-    
-    if((P3 & 0x04)==0)
-    {
-      sortie();
-    }
 
-    // REMOVE BEFORE USE
-    // debug_digits();
+    // RBU
+    //debug_digits();
 
-    if ((check_code())) 
+    if ((check_code())) //Si code validé
     {
-      if(check_place(nbPlaces))
+      if(check_place(nbPlaces)) //Si assez de places
       {
-         LCDClear();
-      LCDDisplay("Ouverture");
-      tempo100ms(10);
-      
-      LCDClear();
-      LCDDisplay("Ouvert");
-        // AJOUTER LIGNE DESSOUS LA TEMPO
-        tempo100ms(10);
-        
-      LCDClear();
-        LCDDisplay("Fermeture");
-        
-        tempo100ms(10);
+        protocole_ouverture();
+        fflush(stdout);
 
+        timer();     
+
+        protocole_fermeture();
+        fflush(stdout);       
+        
         nbPlaces = nbPlaces - 1;
-  
-      //Places_restantes[0] = nbPlaces;
-          nbPlaces = (char) nbPlaces;
-        LCDClear();
-        LCDDisplay(&nbPlaces);
-        tempo100ms(10);
-      
+        printf("Place(s) restante(s) : %hu\n", nbPlaces);
       }
       else
       {
-
+        printf("Pas de place disponible\n");
       }
-
     }
-
   }
 }
 
-//*******FUNC DEF*******//
+//*******DEF FONC*******//
 
 u8 secret_size(void)  //Donne la taille de SECRET
 {
@@ -127,9 +104,9 @@ u8 read_digit(void)
   {
     digicode[code_index] = getchar(); //Saisie dans code[]
   }
-  while ((!digit_is_valid(digicode[code_index]))||((P3 & 0x04)==0)); //Tant que le caract entré est valide
+  while ( !digit_is_valid(digicode[code_index]) ); //Tant que le caract entré est valide
 
-  code_index = (code_index+1) % secret_size(); //incrementer code index, ou remise à zero quand max
+  code_index = (code_index+1) % secret_size(); //incrementer code_index, ou remise à zero quand max
 
   return TRUE;
 }
@@ -185,53 +162,55 @@ void tempo100ms(u16 Nb100ms)
   }
 }
 
-void sortie(void)
-{
-  printf("walou\n");
+//    FONCTIONS DE MOUVEMENT DE BARRIERE    //
 
-}
-
-u8 Appui_P32(void)
-{
-  if((P3 & 0x04)==0)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-/*
-u16 protocole_entree (u16 nbPlaces)
+void protocole_ouverture(void)
 {
   LCDClear();
-  LCDDisplay(LCD_ouverture);
-        
+
+  printf("Ouverture...\n");
+  LCDDisplay("Ouverture");
+
   tempo100ms(10);
-        
-  LCDClear();
-  LCDDisplay(LCD_fermeture);
 
-  nbPlaces = nbPlaces - 1;
-  
-  Places_restantes[0] = nbPlaces;
-        
   LCDClear();
-  LCDDisplay(Places_restantes);
-}*/
+  LCDDisplay("Ouvert");
+  printf("Ouvert\n");
+}
+
+void protocole_fermeture(void)
+{
+  LCDClear();
+
+  printf("Fermeture...\n");
+  LCDDisplay("Fermeture");
+
+  tempo100ms(10);
+
+  LCDClear();
+  LCDDisplay("Ferme");
+  printf("Ferme\n");
+}
+
+void timer(void)
+{
+  u16 temps_restant;
+
+  for (temps_restant = 10; temps_restant !=0; temps_restant--)
+  {
+    printf("Temps restant: %hu\n", temps_restant);
+    sleep(1);
+  }
+}
+
 
 //********SPIT********//
-/*
+
 void spit_ext0(void) interrupt 0 setting 1
 {
-  demande_sortie++;
-  printf("\nOUVERTURE!\n"); 
-  tempo100ms(10);
-    printf("FERMETURE\n");
-    nbPlaces = nbPlaces + 1;
-    printf("\nPlace(s) restante(s) : %hu\n", nbPlaces);
-    demande_sortie = 0;
-}
+  protocole_ouverture();
+  timer();
+  protocole_fermeture();
 
-*/
+  nbPlaces++;
+}
