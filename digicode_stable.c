@@ -209,7 +209,7 @@ void timer(void)
 void spit_ext0(void) interrupt 0 setting 1
 {
   u16 temps_restant;
-  
+
   protocole_ouverture();
 
   for (temps_restant = 10; temps_restant !=0; temps_restant--)
@@ -228,6 +228,8 @@ void spit_ext0(void) interrupt 0 setting 1
   protocole_fermeture();
 
   nbPlaces++;
+
+  printf("Place(s) restante(s) : %hu\n", nbPlaces);
 
   IT0 = 0;
 }
