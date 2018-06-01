@@ -50,7 +50,9 @@ void main (void)
 
   while (TRUE) 
   {
-  
+    printf("Code ?\n");
+    LCDDisplay("Code ?");
+
     read_digit();
 
     // RBU
@@ -168,7 +170,7 @@ void protocole_ouverture(void)
 {
   LCDClear();
 
-  printf("Ouverture...\n");
+  printf("\nOuverture...\n");
   LCDDisplay("Ouverture");
 
   tempo100ms(10);
