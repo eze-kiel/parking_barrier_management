@@ -5,6 +5,8 @@
 #include <unistd.h> //pour sleep(x), utiliser commandes UNIX
 #include "../Biblio/types.h"
 //#include "../Biblio/mesfonctions.h"
+//#include "../Biblio/io_xeva.h"
+
 
 
 #define SECRET "9876"
@@ -37,7 +39,8 @@ void main (void)
 
   LCDInit();
   LCDClear();
-  
+  LCDDisplay("Fermeture");
+
   EX0 = 0;
   IT0 = 1;
   EA = 1;
@@ -163,15 +166,29 @@ void tempo100ms(u16 Nb100ms)
 
 void protocole_ouverture(void)
 {
+  LCDClear();
+
   printf("Ouverture...\n");
-  sleep(1);
+  LCDDisplay("Ouverture");
+
+  tempo100ms(10);
+
+  LCDClear();
+  LCDDisplay("Ouvert");
   printf("Ouvert\n");
 }
 
 void protocole_fermeture(void)
 {
+  LCDClear();
+
   printf("Fermeture...\n");
-  sleep(1);
+  LCDDisplay("Fermeture");
+
+  tempo100ms(10);
+
+  LCDClear();
+  LCDDisplay("Ferme");
   printf("Ferme\n");
 }
 
