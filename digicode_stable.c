@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <unistd.h> //pour sleep(x)
+#include <unistd.h> //pour sleep(x), utiliser commandes UNIX
 #include "../Biblio/types.h"
 //#include "../Biblio/mesfonctions.h"
 
 
 #define SECRET "9876"
-#define TAILLE_PARKING 2
+#define TAILLE_PARKING 2      
 
 #define TRUE 1
 #define FALSE 0
@@ -29,15 +29,19 @@ u8 check_place(u16 nbPlaces);
 void tempo100ms(u16 Nb100ms);
 void protocole_ouverture(void);
 void protocole_fermeture(void);
+void timer(void);
 
 void main (void) 
 {
   code_index = 0;
-/*
+
+  LCDInit();
+  LCDClear();
+  
   EX0 = 0;
   IT0 = 1;
   EA = 1;
-*/
+
 
   printf("Place(s) restante(s) : %hu\n", nbPlaces);
 
@@ -46,17 +50,18 @@ void main (void)
   
     read_digit();
 
-    // REMOVE BEFORE USE
+    // RBU
     //debug_digits();
 
-    if ((check_code())) 
+    if ((check_code())) //Si code validé
     {
-      if(check_place(nbPlaces))
+      if(check_place(nbPlaces)) //Si assez de places
       {
         protocole_ouverture();
         fflush(stdout);
-        //REMPLACER PAR tempo100ms       
-        sleep(3);
+
+        timer();     
+
         protocole_fermeture();
         fflush(stdout);       
         
@@ -98,7 +103,7 @@ u8 read_digit(void)
   }
   while ( !digit_is_valid(digicode[code_index]) ); //Tant que le caract entré est valide
 
-  code_index = (code_index+1) % secret_size(); //incrementer code incrementerdex, ou remise à zero quand max
+  code_index = (code_index+1) % secret_size(); //incrementer code_index, ou remise à zero quand max
 
   return TRUE;
 }
@@ -167,21 +172,28 @@ void protocole_fermeture(void)
 {
   printf("Fermeture...\n");
   sleep(1);
-  printf("Fermé\n");
+  printf("Ferme\n");
+}
+
+void timer(void)
+{
+  u16 temps_restant;
+
+  for (temps_restant = 10; temps_restant !=0; temps_restant--)
+  {
+    printf("Temps restant: %hu\n", temps_restant);
+    sleep(1);
+  }
 }
 
 
 //********SPIT********//
-/*
+
 void spit_ext0(void) interrupt 0 setting 1
 {
-  demande_sortie++;
-  printf("\nOUVERTURE!\n"); 
-  tempo100ms(10);
-    printf("FERMETURE\n");
-    nbPlaces = nbPlaces + 1;
-    printf("\nPlace(s) restante(s) : %hu\n", nbPlaces);
-    demande_sortie = 0;
-}
+  protocole_ouverture();
+  timer();
+  protocole_fermeture();
 
-*/
+  nbPlaces++;
+}
